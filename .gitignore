@@ -1,0 +1,17 @@
+# Ignore files and directories that are specific to this project
+
+.vscode/
+node_modules/
+build/
+dist/
+
+# Ignore files and directories that contain sensitive information
+
+.env
+secrets/
+
+# Ignore files and directories that are generated automatically
+
+*.log
+*.tmp
+*.swp
