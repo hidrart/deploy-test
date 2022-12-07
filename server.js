@@ -2,6 +2,7 @@ const express = require('express');
 const connection = require('./server/database/connection');
 const routes = require('./server/routes/movie.routes');
 const app = express();
+const cors = require('cors');
 
 // setup dotenv
 require('dotenv').config();
@@ -10,6 +11,7 @@ require('dotenv').config();
 connection();
 
 // setup cors, body-parser, and routes
+app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
