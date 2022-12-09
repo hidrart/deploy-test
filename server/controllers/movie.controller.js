@@ -77,25 +77,17 @@ const getAllMovies = (req, res) => {
 	});
 };
 
-// create a new movie
 const createMovie = (req, res) => {
 	try {
 		// validate request body
 		if (!req.body) {
-			res.status(400).json({
+			return res.status(400).json({
 				error: 'Request body is missing',
 			});
 		}
 
 		// create a new movie
 		const { title, director, year, description, rating, imageUrl } = req.body;
-
-		// validate request body
-		if (!title || !director || !year || !description || !rating || !imageUrl) {
-			res.status(400).json({
-				error: 'Invalid request body',
-			});
-		}
 
 		// create a new movie
 		const movie = new Movie({
