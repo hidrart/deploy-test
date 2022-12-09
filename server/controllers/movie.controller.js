@@ -62,10 +62,9 @@ const getAllMovies = (req, res) => {
 				.sort({ [sort]: order })
 				.then((movies) => {
 					console.log('from database');
-					return res.status(200).json(movies);
-
 					// save to redis cache
 					client.setex('movies', 3600, JSON.stringify(movies));
+					return res.status(200).json(movies);
 				})
 				.catch((err) => {
 					return res.status(500).json({
@@ -152,10 +151,9 @@ const getMovieById = (req, res) => {
 			Movie.findById(id)
 				.then((movie) => {
 					console.log('from database');
-					return res.status(200).json(movie);
-
 					// save to redis cache
 					client.setex(id, 3600, JSON.stringify(movie));
+					return res.status(200).json(movie);
 				})
 				.catch((err) => {
 					return res.status(500).json({
@@ -268,10 +266,9 @@ const searchMovies = (req, res) => {
 			})
 				.then((movies) => {
 					console.log('from database');
-					res.status(200).json(movies);
-
 					// save to redis cache
 					client.setex(keyword, 3600, JSON.stringify(movies));
+					return res.status(200).json(movies);
 				})
 				.catch((err) => {
 					return res.status(500).json({

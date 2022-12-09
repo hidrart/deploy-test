@@ -8,7 +8,7 @@ const cors = require('cors');
 require('dotenv').config();
 
 // mongodb
-connection();
+// connection();
 
 // setup cors, body-parser, and routes
 app.use(cors());
