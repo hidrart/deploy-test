@@ -62,7 +62,7 @@ const getAllMovies = (req, res) => {
 				.sort({ [sort]: order })
 				.then((movies) => {
 					console.log('from database');
-					resstatus(200).json(movies);
+					return res.status(200).json(movies);
 
 					// save to redis cache
 					client.setex('movies', 3600, JSON.stringify(movies));
