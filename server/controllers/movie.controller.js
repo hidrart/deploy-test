@@ -101,22 +101,21 @@ const createMovie = (req, res) => {
 		movie
 			.save()
 			.then((movie) => {
+				// clear redis cache
+				client
+					.del('movies')
+					.then(() => {
+						console.log('Cache cleared');
+					})
+					.catch((err) => {
+						console.log(err);
+					});
 				return res.status(201).json(movie);
 			})
 			.catch((err) => {
 				return res.status(500).json({
 					error: err.message,
 				});
-			});
-
-		// clear redis cache
-		client
-			.del('movies')
-			.then(() => {
-				console.log('Cache cleared');
-			})
-			.catch((err) => {
-				console.log(err);
 			});
 	} catch (err) {
 		return res.status(500).json({
@@ -193,22 +192,30 @@ const updateMovie = (req, res) => {
 		{ new: true }
 	)
 		.then((movie) => {
+			client
+				.del('movies')
+				.then(() => {
+					console.log('Cache cleared');
+				})
+				.catch((err) => {
+					console.log(err);
+				});
+
+			client
+				.del(id)
+				.then(() => {
+					console.log('Cache cleared');
+				})
+				.catch((err) => {
+					console.log(err);
+				});
+
 			return res.status(200).json(movie);
 		})
 		.catch((err) => {
 			return res.status(500).json({
 				error: err.message,
 			});
-		});
-
-	// clear redis cache
-	client
-		.del('movies')
-		.then(() => {
-			console.log('Cache cleared');
-		})
-		.catch((err) => {
-			console.log(err);
 		});
 };
 
@@ -220,6 +227,15 @@ const deleteMovie = (req, res) => {
 	// delete movie from database
 	Movie.findByIdAndDelete(id)
 		.then((movie) => {
+			// clear redis cache
+			client
+				.del('movies')
+				.then(() => {
+					console.log('Cache cleared');
+				})
+				.catch((err) => {
+					console.log(err);
+				});
 			return res.status(200).json(movie);
 		})
 		.catch((err) => {
@@ -227,56 +243,24 @@ const deleteMovie = (req, res) => {
 				error: err.message,
 			});
 		});
-
-	// clear redis cache
-	client
-		.del('movies')
-		.then(() => {
-			console.log('Cache cleared');
-		})
-		.catch((err) => {
-			console.log(err);
-		});
 };
 
 const searchMovies = (req, res) => {
 	// get search query from :keyword
 	const keyword = req.params.keyword;
 
-	// check redis cache
-	client.get(keyword, (err, movies) => {
-		// handle error
-		if (err) {
-			console.log(err);
+	Movie.find({
+		$or: [{ title: { $regex: keyword, $options: 'i' } }, { director: { $regex: keyword, $options: 'i' } }],
+	})
+		.then((movies) => {
+			console.log('from database');
+			return res.status(200).json(movies);
+		})
+		.catch((err) => {
 			return res.status(500).json({
 				error: err.message,
 			});
-		}
-
-		// return data from cache
-		if (movies) {
-			console.log('from cache');
-			res.status(200).json(JSON.parse(movies));
-		}
-
-		// return data from database
-		else {
-			Movie.find({
-				$or: [{ title: { $regex: keyword, $options: 'i' } }, { director: { $regex: keyword, $options: 'i' } }],
-			})
-				.then((movies) => {
-					console.log('from database');
-					// save to redis cache
-					client.setex(keyword, 3600, JSON.stringify(movies));
-					return res.status(200).json(movies);
-				})
-				.catch((err) => {
-					return res.status(500).json({
-						error: err.message,
-					});
-				});
-		}
-	});
+		});
 };
 
 module.exports = { getAllMovies, getMovieById, createMovie, updateMovie, deleteMovie, searchMovies };
