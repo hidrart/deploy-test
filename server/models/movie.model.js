@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const validator = require('validator');
 
 // Create a new Mongoose schema for movies
 const movieSchema = new mongoose.Schema({

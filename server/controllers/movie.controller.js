@@ -8,7 +8,7 @@ const getAllMovies = (req, res) => {
 
 	// validate limit
 	if (limit < 1 || limit > 100) {
-		res.status(400).json({
+		return res.status(400).json({
 			error: 'Limit must be between 1 and 100',
 		});
 	}
@@ -18,7 +18,7 @@ const getAllMovies = (req, res) => {
 
 	// validate sort
 	if (sort !== 'rating' && sort !== 'year' && sort !== 'title') {
-		res.status(400).json({
+		return res.status(400).json({
 			error: 'Sort must be rating, year or title',
 		});
 	}
@@ -28,7 +28,7 @@ const getAllMovies = (req, res) => {
 
 	// validate order
 	if (order !== 'asc' && order !== 'desc') {
-		res.status(400).json({
+		return res.status(400).json({
 			error: 'Order must be asc or desc',
 		});
 	}
@@ -37,8 +37,7 @@ const getAllMovies = (req, res) => {
 	client.get('movies', (err, movies) => {
 		// handle error
 		if (err) {
-			console.log(err);
-			res.status(500).json({
+			return res.status(500).json({
 				error: err.message,
 			});
 		}
@@ -46,7 +45,7 @@ const getAllMovies = (req, res) => {
 		// return data from cache
 		if (movies) {
 			console.log('from cache');
-			res.status(200).json(
+			return res.status(200).json(
 				JSON.parse(movies)
 					.sort((a, b) => {
 						return order === 'asc' ? a[sort] - b[sort] : b[sort] - a[sort];
@@ -63,13 +62,13 @@ const getAllMovies = (req, res) => {
 				.sort({ [sort]: order })
 				.then((movies) => {
 					console.log('from database');
-					res.json(movies);
+					resstatus(200).json(movies);
 
 					// save to redis cache
 					client.setex('movies', 3600, JSON.stringify(movies));
 				})
 				.catch((err) => {
-					res.status(500).json({
+					return res.status(500).json({
 						error: err.message,
 					});
 				});
@@ -103,10 +102,10 @@ const createMovie = (req, res) => {
 		movie
 			.save()
 			.then((movie) => {
-				res.json(movie);
+				return res.status(201).json(movie);
 			})
 			.catch((err) => {
-				res.status(500).json({
+				return res.status(500).json({
 					error: err.message,
 				});
 			});
@@ -121,7 +120,7 @@ const createMovie = (req, res) => {
 				console.log(err);
 			});
 	} catch (err) {
-		res.status(500).json({
+		return res.status(500).json({
 			error: err.message,
 		});
 	}
@@ -137,7 +136,7 @@ const getMovieById = (req, res) => {
 		// handle error
 		if (err) {
 			console.log(err);
-			res.status(500).json({
+			return res.status(500).json({
 				error: err.message,
 			});
 		}
@@ -145,7 +144,7 @@ const getMovieById = (req, res) => {
 		// return data from cache
 		if (movie) {
 			console.log('from cache');
-			res.json(JSON.parse(movie));
+			return res.status(200).json(JSON.parse(movie));
 		}
 
 		// return data from database
@@ -153,13 +152,13 @@ const getMovieById = (req, res) => {
 			Movie.findById(id)
 				.then((movie) => {
 					console.log('from database');
-					res.json(movie);
+					return res.status(200).json(movie);
 
 					// save to redis cache
 					client.setex(id, 3600, JSON.stringify(movie));
 				})
 				.catch((err) => {
-					res.status(500).json({
+					return res.status(500).json({
 						error: err.message,
 					});
 				});
@@ -174,20 +173,13 @@ const updateMovie = (req, res) => {
 
 	// validate request body
 	if (!req.body) {
-		res.status(400).json({
+		return res.status(400).json({
 			error: 'Request body is missing',
 		});
 	}
 
 	// create a new movie
 	const { title, director, year, description, rating, imageUrl } = req.body;
-
-	// validate request body
-	if (!title || !director || !year || !description || !rating || !imageUrl) {
-		res.status(400).json({
-			error: 'Invalid request body',
-		});
-	}
 
 	// find and update movie
 	Movie.findByIdAndUpdate(
@@ -203,10 +195,10 @@ const updateMovie = (req, res) => {
 		{ new: true }
 	)
 		.then((movie) => {
-			res.json(movie);
+			return res.status(200).json(movie);
 		})
 		.catch((err) => {
-			res.status(500).json({
+			return res.status(500).json({
 				error: err.message,
 			});
 		});
@@ -230,10 +222,10 @@ const deleteMovie = (req, res) => {
 	// delete movie from database
 	Movie.findByIdAndDelete(id)
 		.then((movie) => {
-			res.json(movie);
+			return res.status(200).json(movie);
 		})
 		.catch((err) => {
-			res.status(500).json({
+			return res.status(500).json({
 				error: err.message,
 			});
 		});
@@ -258,7 +250,7 @@ const searchMovies = (req, res) => {
 		// handle error
 		if (err) {
 			console.log(err);
-			res.status(500).json({
+			return res.status(500).json({
 				error: err.message,
 			});
 		}
@@ -266,7 +258,7 @@ const searchMovies = (req, res) => {
 		// return data from cache
 		if (movies) {
 			console.log('from cache');
-			res.json(JSON.parse(movies));
+			res.status(200).json(JSON.parse(movies));
 		}
 
 		// return data from database
@@ -276,13 +268,13 @@ const searchMovies = (req, res) => {
 			})
 				.then((movies) => {
 					console.log('from database');
-					res.json(movies);
+					res.status(200).json(movies);
 
 					// save to redis cache
 					client.setex(keyword, 3600, JSON.stringify(movies));
 				})
 				.catch((err) => {
-					res.status(500).json({
+					return res.status(500).json({
 						error: err.message,
 					});
 				});
